@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gau Gyan — Prototype</title>
+  <style>
+    :root{
+      --blue:#0077b6;
+      --dark:#023e8a;
+      --muted:#6c757d;
+      --card-bg:#f8fdff;
+      --glass: rgba(255,255,255,0.7);
+      font-family: Inter, Roboto, Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background: linear-gradient(180deg,#f0f8ff 0%, #ffffff 60%);
+      min-height:100vh;
+      color:#0b2447;
+    }
+    header.appbar{
+      background:linear-gradient(90deg,var(--blue),var(--dark));
+      color:white;
+      padding:14px 20px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      box-shadow:0 6px 18px rgba(3,40,70,0.12);
+    }
+    header.appbar .brand{
+      font-weight:700;
+      font-size:1.15rem;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    header.appbar nav{
+      margin-left:auto;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    header.appbar nav a{
+      color:rgba(255,255,255,0.95);
+      text-decoration:none;
+      padding:8px 12px;
+      border-radius:8px;
+      font-size:0.95rem;
+    }
+    header.appbar nav a.active{
+      background:rgba(255,255,255,0.12);
+      box-shadow: inset 0 -3px 0 rgba(255,255,255,0.06);
+    }
+
+    main.container{
+      max-width:1100px;
+      margin:28px auto;
+      padding:18px;
+    }
+
+    .card{
+      background:var(--card-bg);
+      border-radius:12px;
+      padding:16px;
+      box-shadow:0 6px 18px rgba(3,40,70,0.06);
+    }
+    .grid{
+      display:grid;
+      gap:16px;
+    }
+    .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+    .grid.cols-2{grid-template-columns:repeat(2,1fr)}
+    .flex{display:flex;gap:12px;align-items:center}
+    .center{display:flex;justify-content:center;align-items:center}
+
+    /* ---------- Login ---------- */
+    .auth-wrap{max-width:420px;margin:40px auto}
+    .auth-box{padding:22px}
+    .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+    input[type="text"], input[type="password"], input[type="file"], select, textarea {
+      padding:10px 12px;border-radius:8px;border:1px solid #dbe9f5;background:white;font-size:0.95rem;
+    }
+    button.btn{
+      background:var(--blue);color:white;padding:10px 14px;border-radius:10px;border:none;font-weight:600;cursor:pointer;
+      box-shadow:0 6px 12px rgba(3,40,70,0.08);
+    }
+    button.ghost{background:transparent;color:var(--blue);border:1px solid rgba(0,119,182,0.12)}
+    small.muted{color:var(--muted);font-size:0.85rem}
+
+    /* dashboard */
+    .metrics{display:flex;gap:12px;flex-wrap:wrap}
+    .metric{flex:1;min-width:160px;padding:14px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.8),rgba(255,255,255,0.6));}
+    .metric h4{margin:0;font-size:1.1rem}
+    .metric p{margin:6px 0 0;color:var(--muted)}
+
+    /* analyze page */
+    .upload-area{
+      border:2px dashed rgba(0,119,182,0.25);
+      padding:18px;border-radius:12px;text-align:center;background:linear-gradient(180deg,#ffffff,#f7fdff)
+    }
+    .preview{max-width:240px;border-radius:8px;margin-top:12px;display:block}
+
+    /* breed card */
+    .breed-card{display:flex;gap:14px;align-items:flex-start;padding:12px;border-radius:10px;background:#fff;border:1px solid rgba(3,40,70,0.04)}
+    .badge{display:inline-block;padding:6px 8px;border-radius:8px;font-weight:700}
+    .confidence{background:linear-gradient(90deg,#d1f7e8,#b7fff0);color:#05684a;padding:6px 8px;border-radius:8px;font-weight:700}
+
+    /* reports table */
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #eef7fb;text-align:left}
+    th{background:transparent;color:var(--muted);font-weight:600}
+
+    /* modal */
+    .modal{
+      position:fixed;inset:0;display:none;justify-content:center;align-items:center;background:rgba(8,16,30,0.45);
+      padding:20px;z-index:999;
+    }
+    .modal.show{display:flex}
+    .modal .dialog{background:white;padding:18px;border-radius:12px;max-width:520px;width:100%}
+    .close-x{margin-left:auto;color:var(--muted);cursor:pointer}
+
+    /* footer */
+    footer{max-width:1100px;margin:24px auto;color:var(--muted);font-size:0.9rem;padding:12px}
+
+    /* responsiveness */
+    @media (max-width:900px){
+      .grid.cols-3{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width:640px){
+      header.appbar{flex-direction:column;align-items:flex-start;gap:8px}
+      .grid.cols-3{grid-template-columns:1fr}
+      .metrics{flex-direction:column}
+    }
+  </style>
+</head>
+<body>
+  <header class="appbar">
+    <div class="brand">
+      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'><rect rx='6' ry='6' width='28' height='28' fill='%230077b6'/><text x='50%' y='55%' font-size='14' text-anchor='middle' fill='white' font-family='Arial' font-weight='700'>GG</text></svg>" alt="" style="height:36px">
+      <div>
+        Gau Gyan <div style="font-size:11px;opacity:0.9">Image-based breed recognition (prototype)</div>
+      </div>
+    </div>
+
+    <nav id="topnav">
+      <a href="#/dashboard" data-route="dashboard" class="active">Dashboard</a>
+      <a href="#/analyze" data-route="analyze">Analyze</a>
+      <a href="#/reports" data-route="reports">Reports</a>
+      <a href="#/reviews" data-route="reviews">Reviews</a>
+      <a href="#/settings" data-route="settings">Settings</a>
+      <a href="#/logout" data-route="logout" id="nav-auth">Logout</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- PAGES (rendered by JS routing) -->
+    <section id="page-login" class="card" data-page="login" style="display:none;max-width:720px;margin:20px auto">
+      <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+        <div style="flex:1;min-width:260px">
+          <h2>Welcome to Gau Gyan</h2>
+          <p class="muted">Sign in to continue to the prototype. (Demo credentials below)</p>
+          <div class="auth-box">
+            <div class="field">
+              <label>Username</label>
+              <input id="login-user" type="text" placeholder="demo@farmer.test" value="demo@farmer.test">
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <input id="login-pass" type="password" placeholder="password" value="demo123">
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="btn" onclick="doLogin()">Log in</button>
+              <button class="ghost" onclick="fillDemo()">Use Demo</button>
+            </div>
+            <p style="margin-top:10px"><small class="muted">Demo credentials: <strong>demo@farmer.test / demo123</strong></small></p>
+          </div>
+        </div>
+        <div style="flex:1;min-width:260px">
+          <div class="card" style="padding:18px;">
+            <h3>About this prototype</h3>
+            <p class="muted">This interactive prototype simulates image upload, breed identification (using dummy data), generating reports, and a review workflow. Use the top navigation or buttons to move between pages.</p>
+            <p><strong>Project:</strong> GAU GYAN — SIH submission (Image based breed recognition)</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-dashboard" class="card" data-page="dashboard" style="display:none">
+      <h2>Dashboard</h2>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div class="metrics" style="flex:1">
+          <div class="metric">
+            <h4 id="m-analyses">0</h4>
+            <p>Analyses performed</p>
+          </div>
+          <div class="metric">
+            <h4 id="m-breeds">0</h4>
+            <p>Unique breeds detected</p>
+          </div>
+          <div class="metric">
+            <h4 id="m-reports">0</h4>
+            <p>Reports generated</p>
+          </div>
+        </div>
+        <div style="min-width:200px">
+          <button class="btn" onclick="goto('analyze')">Upload & Analyze</button>
+          <button class="ghost" onclick="goto('reports')">View Reports</button>
+        </div>
+      </div>
+
+      <hr style="margin:18px 0">
+      <h3>Recent Analyses</h3>
+      <div id="recent-list" style="margin-top:12px;display:flex;flex-direction:column;gap:10px"></div>
+    </section>
+
+    <section id="page-analyze" class="card" data-page="analyze" style="display:none">
+      <h2>Analyze — Upload Image</h2>
+      <div class="grid cols-2" style="align-items:start;">
+        <div>
+          <div class="upload-area card">
+            <p style="margin:0;font-weight:700">Upload cattle/buffalo image</p>
+            <p class="muted" style="margin:6px 0 12px">Supports JPG/PNG. This is a prototype — image is previewed and 'analyzed' locally.</p>
+            <input id="file-input" type="file" accept="image/*">
+            <img id="preview-img" class="preview" src="" alt="" style="display:none">
+            <div style="margin-top:12px;">
+              <label>Animal type</label>
+              <select id="animal-type">
+                <option value="cow">Cow</option>
+                <option value="buffalo">Buffalo</option>
+              </select>
+            </div>
+            <div style="margin-top:12px">
+              <button class="btn" onclick="runAnalyze()" style="width:100%">Analyze Image</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div id="result-area" class="card" style="min-height:220px;display:flex;flex-direction:column;gap:12px;justify-content:center">
+            <div id="no-result" class="center" style="flex-direction:column">
+              <p class="muted">No analysis yet — upload an image and click Analyze.</p>
+            </div>
+
+            <div id="result-card" style="display:none">
+              <div class="breed-card">
+                <div style="width:120px">
+                  <img id="result-thumb" src="" style="width:100%;border-radius:8px" alt="">
+                </div>
+                <div style="flex:1">
+                  <div style="display:flex;gap:12px;align-items:center">
+                    <h3 id="breed-name" style="margin:0">Gir</h3>
+                    <div id="breed-confidence" class="confidence">92%</div>
+                    <div style="margin-left:auto"><span class="badge" id="animal-badge">Cow</span></div>
+                  </div>
+                  <p id="breed-desc" class="muted" style="margin-top:8px">Origin: Gujarat. Use: High milk yield. Notes: Hardy indigenous breed.</p>
+
+                  <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                    <button class="btn" onclick="saveAnalysis()">Save Analysis</button>
+                    <button class="ghost" onclick="openReviewModalFromResult()">Review this result</button>
+                    <button class="ghost" onclick="exportSingleReport()">Download Report</button>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:10px">
+                <small class="muted">Model details (simulated): CNN prototype v0.1 — results shown are example predictions for demo.</small>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-reports" class="card" data-page="reports" style="display:none">
+      <h2>Reports</h2>
+      <p class="muted">All saved analysis records. You can download CSV or individual reports.</p>
+
+      <div style="margin-top:14px" class="card">
+        <div style="overflow:auto">
+          <table id="reports-table">
+            <thead>
+              <tr><th>Date</th><th>Breed</th><th>Animal</th><th>Confidence</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="reports-body">
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn" onclick="downloadCSV()">Download CSV</button>
+          <button class="ghost" onclick="clearReports()">Clear All</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-reviews" class="card" data-page="reviews" style="display:none">
+      <h2>Reviews & Feedback</h2>
+      <p class="muted">User feedback helps improve the model and UI. You can submit a review for any analysis or general feedback.</p>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px">
+        <div style="flex:1;min-width:280px">
+          <div class="card">
+            <h4>Write a review</h4>
+            <div class="field">
+              <label>Your name</label>
+              <input id="review-name" type="text" placeholder="Your name">
+            </div>
+            <div class="field">
+              <label>Feedback</label>
+              <textarea id="review-text" placeholder="Describe your experience"></textarea>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn" onclick="submitReviewForm()">Submit Review</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:2;min-width:300px">
+          <div class="card">
+            <h4>All reviews</h4>
+            <div id="reviews-list" style="display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-settings" class="card" data-page="settings" style="display:none">
+      <h2>Settings & About</h2>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:260px">
+          <div class="card">
+            <h4>Project Info</h4>
+            <p class="muted" style="margin-top:6px">GAU GYAN — Image-based breed recognition for cattle & buffaloes (SIH idea). Frontend: React (planned), Backend: Python, DB: Postgres. This is a demo prototype for UI flows.</p>
+            <p style="margin-top:10px"><strong>Team:</strong> THE BUCK BUSTERS</p>
+          </div>
+        </div>
+        <div style="flex:1;min-width:260px">
+          <div class="card">
+            <h4>Account</h4>
+            <p class="muted">You are signed in as <strong id="account-email">demo@farmer.test</strong></p>
+            <div style="margin-top:8px"><button class="ghost" onclick="logout()">Sign out</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal for review from result -->
+  <div id="modal-review" class="modal">
+    <div class="dialog">
+      <div style="display:flex;align-items:center;gap:12px">
+        <h3 style="margin:0">Review this result</h3>
+        <div class="close-x" onclick="closeModal('modal-review')">✕</div>
+      </div>
+      <p class="muted" style="margin-top:8px">Tell us if the detected breed is correct and any additional notes.</p>
+      <div style="margin-top:8px">
+        <div class="field"><label>Your name</label><input id="r-name" type="text" placeholder="Your name"></div>
+        <div class="field"><label>Was the prediction accurate?</label>
+          <select id="r-accurate">
+            <option value="yes">Yes — correct</option>
+            <option value="no">No — incorrect</option>
+            <option value="partial">Partially correct</option>
+          </select>
+        </div>
+        <div class="field"><label>Notes</label><textarea id="r-notes" placeholder="Any comments..."></textarea></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn" onclick="submitModalReview()">Submit</button>
+          <button class="ghost" onclick="closeModal('modal-review')">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Prototype created for demo — Gau Gyan. Data in this prototype is simulated. &nbsp;•&nbsp; Try uploading an image to see the flow.
+  </footer>
+
+<script>
+  /* ---------- Simple SPA routing ---------- */
+  const pages = ['login','dashboard','analyze','reports','reviews','settings'];
+  function showPage(page){
+    // if not logged in, force login
+    const logged = !!localStorage.getItem('gg_user');
+    if(!logged && page !== 'login'){
+      location.hash = '#/login';
+      return;
+    }
+    pages.forEach(p=>{
+      const el = document.querySelector(`[data-page="${p}"]`);
+      if(el) el.style.display = (p===page)? 'block':'none';
+    });
+    updateNavActive(page);
+    if(page==='dashboard') renderDashboard();
+    if(page==='reports') renderReportsTable();
+    if(page==='reviews') renderReviews();
+    if(page==='analyze') prepareAnalyze();
+    if(page==='settings') document.getElementById('account-email').innerText = localStorage.getItem('gg_user') || 'demo@farmer.test';
+  }
+  function updateNavActive(page){
+    Array.from(document.querySelectorAll('header nav a')).forEach(a=>{
+      a.classList.toggle('active', a.getAttribute('data-route')===page);
+    });
+  }
+  function goto(page){ location.hash = '#/'+page }
+
+  window.addEventListener('hashchange', ()=>{
+    const p = location.hash.replace('#/','') || 'dashboard';
+    showPage(p);
+  });
+
+  
+  if(!location.hash) location.hash = '#/login';
+  window.addEventListener('load', ()=> {
+    
+    if(!localStorage.getItem('gg_user')){
+      
+    }
+    const p = location.hash.replace('#/','') || 'login';
+    showPage(p);
+  });
+
+
+  function doLogin(){
+    const u = document.getElementById('login-user').value.trim();
+    const p = document.getElementById('login-pass').value.trim();
+    if(u === 'demo@farmer.test' && p === 'demo123'){
+      localStorage.setItem('gg_user', u);
+      
+      if(!localStorage.getItem('gg_data')) localStorage.setItem('gg_data', JSON.stringify({analyses:[],reviews:[]}))
+      goto('dashboard');
+    } else {
+      alert('Invalid demo credentials. Use demo@farmer.test / demo123');
+    }
+  }
+  function logout(){
+    localStorage.removeItem('gg_user');
+    location.hash = '#/login';
+  }
+  function fillDemo(){ document.getElementById('login-user').value='demo@farmer.test'; document.getElementById('login-pass').value='demo123'; }
+
+  
+  const BREEDS = {
+    cow: [
+      {name:'Gir', origin:'Gujarat', note:'High milk yield, adaptive.'},
+      {name:'Sahiwal', origin:'Punjab/Rajasthan', note:'Good heat tolerance, dairy breed.'},
+      {name:'Red Sindhi', origin:'Sindh', note:'Dual-purpose.'}
+    ],
+    buffalo: [
+      {name:'Murrah', origin:'Punjab/Haryana', note:'High milk yield, riverine buffalo.'},
+      {name:'Mehsana', origin:'Gujarat', note:'Good milk production.'},
+      {name:'Jaffarabadi', origin:'Gujarat', note:'Heavy build.'}
+    ]
+  };
+
+  const fileInput = document.getElementById('file-input');
+  const previewImg = document.getElementById('preview-img');
+  fileInput.addEventListener('change', ()=>{
+    const f = fileInput.files[0];
+    if(!f) return;
+    previewImg.src = URL.createObjectURL(f);
+    previewImg.style.display = 'block';
+  });
+
+  function prepareAnalyze(){
+    document.getElementById('result-area').scrollIntoView({behavior:'smooth'});
+  }
+
+  function runAnalyze(){
+    const f = fileInput.files[0];
+    if(!f){
+      alert('Please upload an image first.');
+      return;
+    }
+    
+    const animal = document.getElementById('animal-type').value;
+    const list = BREEDS[animal];
+    const pick = list[Math.floor(Math.random()*list.length)];
+    const conf = Math.floor(75 + Math.random()*25); // 75-99
+    
+    document.getElementById('breed-name').innerText = pick.name;
+    document.getElementById('breed-desc').innerText = `Origin: ${pick.origin}. Notes: ${pick.note}`;
+    document.getElementById('breed-confidence').innerText = conf + '%';
+    document.getElementById('animal-badge').innerText = animal.charAt(0).toUpperCase()+animal.slice(1);
+    document.getElementById('result-thumb').src = previewImg.src;
+    document.getElementById('result-card').style.display = 'block';
+    document.getElementById('no-result').style.display = 'none';
+  }
+
+  function saveAnalysis(){
+   
+    const user = localStorage.getItem('gg_user') || 'demo@farmer.test';
+    const name = document.getElementById('breed-name').innerText;
+    const conf = document.getElementById('breed-confidence').innerText.replace('%','')*1;
+    const animal = document.getElementById('animal-badge').innerText;
+    const thumb = document.getElementById('result-thumb').src;
+    const rec = {id:Date.now(), date: new Date().toISOString(), breed:name, animal, confidence:conf, thumb, user};
+    const data = JSON.parse(localStorage.getItem('gg_data') || '{"analyses":[],"reviews":[]}');
+    data.analyses.unshift(rec);
+    localStorage.setItem('gg_data', JSON.stringify(data));
+    alert('Analysis saved to reports.');
+    renderDashboard();
+  }
+
+  
+  function renderDashboard(){
+    const data = JSON.parse(localStorage.getItem('gg_data') || '{"analyses":[],"reviews":[]}');
+    document.getElementById('m-analyses').innerText = data.analyses.length;
+    const breedsSet = new Set(data.analyses.map(a=>a.breed));
+    document.getElementById('m-breeds').innerText = breedsSet.size;
+    document.getElementById('m-reports').innerText = data.analyses.length;
+    const recent = document.getElementById('recent-list');
+    recent.innerHTML = '';
+    (data.analyses.slice(0,5)).forEach(a=>{
+      const node = document.createElement('div');
+      node.className = 'breed-card';
+      node.innerHTML = `<div style="width:80px"><img src="${a.thumb}" style="width:100%;border-radius:8px"></div>
+        <div style="flex:1"><strong>${a.breed}</strong><div class="muted" style="margin-top:6px">${new Date(a.date).toLocaleString()}</div></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><div class="confidence">${a.confidence}%</div>
+        <button class="ghost" onclick="viewAnalysis(${a.id})">View</button></div>`;
+      recent.appendChild(node);
+    });
+  }
+
+  function viewAnalysis(id){
+    const data = JSON.parse(localStorage.getItem('gg_data') || '{"analyses":[],"reviews":[]}');
+    const rec = data.analyses.find(r=>r.id===id);
+    if(!rec) return alert('Record not found');
+    // fill analyze result with record data
+    document.getElementById('result-thumb').src = rec.thumb;
+    document.getElementById('breed-name').innerText = rec.breed;
+    document.getElementById('breed-confidence').innerText = rec.confidence + '%';
+    document.getElementById('animal-badge').innerText = rec.animal;
+    document.getElementById('breed-desc').innerText = `Saved on ${new Date(rec.date).toLocaleString()}`;
+    document.getElementById('result-card').style.display = 'block';
+    document.getElementById('no-result').style.display = 'none';
+    goto('analyze');
+  }
+
+  /* ---------- Reports ---------- */
+  function renderReportsTable(){
+    const data = JSON.parse(localStorage.getItem('gg_data') || '{"analyses":[],"reviews":[]}');
+    const tbody = document.getElementById('reports-body');
+    tbody.innerHTML = '';
+    data.analyses.forEach(a=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${new Date(a.date).toLocaleString()}</td>
+        <td>${a.breed}</td>
+        <td>${a.animal}</td>
+        <td>${a.confidence}%</td>
+        <td>
+          <button class="ghost" onclick='exportReport(${a.id})'>Download</button>
+          <button class="ghost" onclick='deleteReport(${a.id})'>Delete</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function exportReport(id){
+    const data = JSON.parse(localStorage.getItem('gg_data') || '{"analyses":[],"reviews":[]}');
+    const rec = data.analyses.find(r=>r.id===id);
+    if(!rec) return alert('Record not found');
+    const text = `Breed Report\nDate: ${new Date(rec.date).toLocaleString()}\nBreed: ${rec.breed}\nAnimal: ${rec.animal}\nConfidence: ${rec.confidence}%\nUser: ${rec.user}\n\nNotes: This is a simulated report for prototype.`;
+    const blob = new Blob([text], {type:'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `report_${rec.id}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function exportSingleReport(){
+    // export current displayed result (if present)
+    const name = document.getElementById('breed-name').innerText;
+    const conf = document.getElementById('breed-confidence').innerText;
+    const animal = document.getElementById('animal-badge').innerText;
+    const text = `Breed Report\nBreed: ${name}\nAnimal: ${animal}\nConfidence: ${conf}\n\nThis is a simulated export.`;
+    const blob = new Blob([text], {type:'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `report_${name.replace(/\s+/g,'_')}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function downloadCSV(){
+    const data = JSON.parse(localStorage.getItem('gg_data') || '{"analyses":[],"reviews":[]}');
+    if(!data.analyses.length) return alert('No reports to download.');
+    const rows = [['date','breed','animal','confidence','user']];
+    data.analyses.forEach(a=> rows.push([a.date,a.breed,a.animal,a.confidence,a.user]));
+    const csv = rows.map(r=> r.map(c=> `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `gau_gyan_reports.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function clearReports(){
+    if(!confirm('Clear all saved reports?')) return;
+    const data = JSON.parse(localStorage.getItem('gg_data') || '{"analyses":[],"reviews":[]}');
+    data.analyses = [];
+    localStorage.setItem('gg_data', JSON.stringify(data));
+    renderReportsTable();
+    renderDashboard();
+  }
+
+  function deleteReport(id){
+    let data = JSON.parse(localStorage.getItem('gg_data') || '{"analyses":[],"reviews":[]}');
+    data.analyses = data.analyses.filter(a=>a.id !== id);
+    localStorage.setItem('gg_data', JSON.stringify(data));
+    renderReportsTable();
+    renderDashboard();
+  }
+
+  /* ---------- Reviews ---------- */
+  function openReviewModalFromResult(){
+    // prefill some info if result visible
+    const name = document.getElementById('breed-name').innerText;
+    document.getElementById('r-notes').value = `About breed ${name}: `;
+    document.getElementById('modal-review').classList.add('show');
+  }
+  function closeModal(id){ document.getElementById(id).classList.remove('show') }
+
+  function submitModalReview(){
+    const reviewer = document.getElementById('r-name').value.trim() || 'Anonymous';
+    const accurate = document.getElementById('r-accurate').value;
+    const notes = document.getElementById('r-notes').value.trim();
+    const data = JSON.parse(localStorage.getItem('gg_data') || '{"analyses":[],"reviews":[]}');
+    data.reviews.unshift({id:Date.now(), reviewer, accurate, notes, date: new Date().toISOString()});
+    localStorage.setItem('gg_data', JSON.stringify(data));
+    alert('Thanks for the review.');
+    closeModal('modal-review');
+    renderReviews();
+  }
+
+  function submitReviewForm(){
+    const reviewer = document.getElementById('review-name').value.trim() || 'Anonymous';
+    const notes = document.getElementById('review-text').value.trim();
+    if(!notes) return alert('Please write some feedback before submitting.');
+    const data = JSON.parse(localStorage.getItem('gg_data') || '{"analyses":[],"reviews":[]}');
+    data.reviews.unshift({id:Date.now(), reviewer, accurate:'general', notes, date: new Date().toISOString()});
+    localStorage.setItem('gg_data', JSON.stringify(data));
+    document.getElementById('review-name').value=''; document.getElementById('review-text').value='';
+    renderReviews();
+    alert('Review submitted — thank you!');
+  }
+
+  function renderReviews(){
+    const data = JSON.parse(localStorage.getItem('gg_data') || '{"analyses":[],"reviews":[]}');
+    const list = document.getElementById('reviews-list');
+    list.innerHTML = '';
+    if(!data.reviews.length) list.innerHTML = '<div class="muted">No reviews yet.</div>';
+    data.reviews.forEach(r=>{
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.style.padding = '12px';
+      el.innerHTML = `<div style="display:flex;gap:12px;align-items:center">
+          <div style="background:#eef9f6;padding:10px;border-radius:8px;font-weight:700">${(r.reviewer||'A').charAt(0).toUpperCase()}</div>
+          <div style="flex:1">
+            <strong>${escapeHtml(r.reviewer)}</strong>
+            <div class="muted" style="font-size:0.85rem">${new Date(r.date).toLocaleString()} • ${r.accurate}</div>
+            <div style="margin-top:8px">${escapeHtml(r.notes)}</div>
+          </div>
+        </div>`;
+      list.appendChild(el);
+    });
+  }
+
+  // helper to prevent HTML injection in review display
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m] });
+  }
+
+  /* ---------- small helpers ---------- */
+  function openReviewModalFromResult(){ document.getElementById('modal-review').classList.add('show') }
+
+  // when user clicks Download on a listed record, exportReport is called
+  // provide a quick wrapper called exportSingleReport above for current result
+
+  // Expose some functions to global for inline attribute handlers
+  window.goto = goto;
+  window.runAnalyze = runAnalyze;
+  window.saveAnalysis = saveAnalysis;
+  window.exportSingleReport = exportSingleReport;
+  window.openReviewModalFromResult = openReviewModalFromResult;
+  window.downloadCSV = downloadCSV;
+  window.clearReports = clearReports;
+  window.exportReport = exportReport;
+  window.deleteReport = deleteReport;
+  window.viewAnalysis = viewAnalysis;
+  window.doLogin = doLogin;
+  window.fillDemo = fillDemo;
+  window.logout = logout;
+  window.submitReviewForm = submitReviewForm;
+  window.submitModalReview = submitModalReview;
+  window.prepareAnalyze = prepareAnalyze;
+
+</script>
+</body>
+</html>
